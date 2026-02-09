@@ -4,89 +4,101 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ĐÂY RỒI LÀ ĐÔI GIÀY</title>
-    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
     <style>
-        :root { --orange: #FF6600; --black: #121212; }
-        body { background: var(--black); color: #fff; font-family: sans-serif; margin: 0; text-align: center; }
-        header { background: #000; padding: 20px; border-bottom: 4px solid var(--orange); }
-        header h1 { color: var(--orange); font-family: 'Oswald'; margin: 0; font-size: 28px; }
-        .size-container { position: sticky; top: 0; background: #000; padding: 10px; overflow-x: auto; white-space: nowrap; z-index: 99; border-bottom: 1px solid #333; }
-        .btn-size { background: #333; color: #fff; border: none; padding: 12px 20px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 4px; font-family: 'Oswald'; }
-        .btn-size.active { background: var(--orange); color: #000; }
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; max-width: 1200px; margin: auto; }
-        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
-        .card { background: #1e1e1e; padding: 5px; border-radius: 5px; border: 1px solid #333; cursor: pointer; }
-        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 3px; background: #fff; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: #000; overflow-y: auto; }
-        .modal-content { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 10px; margin-top: 50px; }
-        .modal-img { width: 100%; background: #fff; border-radius: 5px; }
-        .close { position: fixed; top: 10px; right: 20px; font-size: 30px; color: var(--orange); z-index: 1001; cursor: pointer; background: #000; padding: 5px 15px; border: 1px solid var(--orange); border-radius: 5px; }
+        body { background-color: #000; color: #ff6600; font-family: Arial, sans-serif; margin: 0; padding: 20px; text-align: center; }
+        h1 { color: #ff6600; text-transform: uppercase; }
+        .tabs { display: flex; overflow-x: auto; gap: 10px; padding: 10px; justify-content: center; background: #111; position: sticky; top: 0; z-index: 100; }
+        .tab-btn { background: #222; color: #fff; border: 1px solid #444; padding: 10px 20px; cursor: pointer; font-weight: bold; min-width: 80px; }
+        .tab-btn.active { background: #ff6600; color: #000; border-color: #ff6600; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .card { background: #111; border: 1px solid #333; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .card img { width: 100%; border-radius: 5px; aspect-ratio: 1/1; object-fit: cover; }
+        .card p { margin: 10px 0 0; font-size: 14px; font-weight: bold; }
+        /* Modal xem ảnh chi tiết */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; padding: 20px 0; }
+        .modal-content { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .modal-content img { width: 90%; max-width: 500px; border: 2px solid #ff6600; }
+        .close-btn { position: fixed; top: 10px; right: 20px; font-size: 30px; color: #fff; cursor: pointer; background: #ff6600; padding: 5px 15px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <header><h1>ĐÂY RỒI LÀ ĐÔI GIÀY</h1></header>
-    <div class="size-container" id="tabs"></div>
-    <h2 id="title" style="color: var(--orange); margin-top: 20px;">CHỌN SIZE GIÀY</h2>
-    <div class="product-grid" id="grid"></div>
 
-    <div id="modal" class="modal">
-        <span class="close" onclick="closeModal()">ĐÓNG [X]</span>
-        <div class="modal-content" id="modal-content"></div>
+    <h1>ĐÂY RỒI LÀ ĐÔI GIÀY</h1>
+    <div class="tabs" id="tabs"></div>
+    <h2 id="size-title">CHỌN SIZE GIÀY</h2>
+    <div class="grid" id="grid"></div>
+
+    <div id="modal">
+        <span class="close-btn" onclick="closeModal()">ĐÓNG [X]</span>
+        <div class="modal-content" id="modal-images"></div>
     </div>
 
     <script>
-        // CẤU HÌNH: Điền số đôi giày đang có vào đây
+        // CẤU HÌNH: Sửa số lượng giày thực tế bạn có vào đây
         const config = {
-            "37": 10, "37.5": 0, "38": 10, "38.5": 0, "39": 0, "40": 0, 
-            "41": 0, "42": 45, "42.5": 0, "43": 0, "44": 0, "44.5": 0, 
-            "45": 0, "46": 0, "47": 0, "48": 0
+            "37": 15, "37.5": 0, "38": 10, "38.5": 0, "39": 0, "40": 0, 
+            "40.5": 0, "41": 0, "42": 45, "42.5": 0, "43": 0, "44": 0, 
+            "44.5": 0, "45": 0, "46": 0, "47": 0, "48": 0
         };
 
         const tabs = document.getElementById('tabs');
         const grid = document.getElementById('grid');
+        const sizeTitle = document.getElementById('size-title');
 
+        // Tạo nút bấm size
         Object.keys(config).forEach(size => {
-            let btn = document.createElement('button');
-            btn.className = 'btn-size';
-            btn.innerText = 'SIZE ' + size;
+            const btn = document.createElement('button');
+            btn.className = 'tab-btn';
+            btn.innerText = `SIZE ${size}`;
             btn.onclick = () => loadSize(size, btn);
             tabs.appendChild(btn);
         });
 
         function loadSize(size, btn) {
-            document.querySelectorAll('.btn-size').forEach(b => b.classList.remove('active'));
+            // Cập nhật giao diện nút
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.getElementById('title').innerText = "KHO GIÀY SIZE " + size;
+            sizeTitle.innerText = `KHO GIÀY SIZE ${size}`;
             grid.innerHTML = '';
+
             const count = config[size];
-            if(count === 0) {
+            if (count === 0) {
                 grid.innerHTML = '<p style="grid-column: 1/-1">Hiện tại size này chưa có hàng.</p>';
                 return;
             }
-            for(let i = 1; i <= count; i++) {
-                let card = document.createElement('div');
+
+            // Hiển thị danh sách giày
+            for (let i = 1; i <= count; i++) {
+                const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<img/size${size}/${i}/1.jpg" loading="lazy" onerror="this.parentElement.style.display='none'">`;
+                // Chú ý: Đường dẫn img/size${size}/${i}/1.jpg (viết liền, không dấu cách)
+                card.innerHTML = `
+                    <img src="img/size${size}/${i}/1.jpg" onerror="this.src='https://via.placeholder.com/150?text=Loi+Anh'" alt="Giày">
+                    <p>Mẫu số ${i}</p>
+                `;
                 card.onclick = () => openModal(size, i);
                 grid.appendChild(card);
             }
         }
 
-        function openModal(size, folderIndex) {
-            const content = document.getElementById('modal-content');
-            content.innerHTML = '';
-            for(let i = 1; i <= 6; i++) {
-                let img = document.createElement('img');
-                img.src = `img/size${size}/${folderIndex}/${i}.jpg`;
-                img.className = 'modal-img';
-                img.onerror = function() { this.style.display='none'; };
-                content.appendChild(img);
+        function openModal(size, id) {
+            const modal = document.getElementById('modal');
+            const container = document.getElementById('modal-images');
+            container.innerHTML = '';
+            
+            // Hiển thị tối đa 6 ảnh chi tiết từ 1.jpg đến 6.jpg
+            for (let j = 1; j <= 6; j++) {
+                const img = document.createElement('img');
+                img.src = `img/size${size}/${id}/${j}.jpg`;
+                img.onerror = function() { this.style.display='none'; }; // Ẩn nếu không có đủ 6 ảnh
+                container.appendChild(img);
             }
-            document.getElementById('modal').style.display = 'block';
-            window.scrollTo(0,0);
+            modal.style.display = 'block';
         }
 
-        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
     </script>
 </body>
 </html>
