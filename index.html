@@ -5,25 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ĐÂY RỒI LÀ ĐÔI GIÀY</title>
     <style>
-        /* Fix thanh cuộn và tối ưu tốc độ */
-        html, body { background-color: #000; color: #ff6600; font-family: Arial, sans-serif; margin: 0; padding: 0; min-height: 100vh; overflow-y: auto !important; }
+        /* Sửa lỗi mất thanh cuộn và lag */
+        html, body { 
+            background-color: #000; color: #ff6600; 
+            font-family: Arial, sans-serif; margin: 0; padding: 0;
+            overflow-x: hidden; /* Chống tràn ngang toàn trang */
+            overflow-y: auto !important; /* Luôn cho phép cuộn dọc */
+        }
         h1 { color: #ff6600; text-transform: uppercase; margin: 15px 0; font-size: 20px; text-align: center; }
         
-        .tabs { display: flex; overflow-x: auto; gap: 8px; padding: 10px; background: #111; position: sticky; top: 0; z-index: 100; border-bottom: 2px solid #ff6600; }
+        /* Thanh chọn size có thanh cuộn ngang mượt mà */
+        .tabs { 
+            display: flex; overflow-x: auto; gap: 8px; padding: 10px; 
+            background: #111; position: sticky; top: 0; z-index: 100; 
+            border-bottom: 2px solid #ff6600;
+            -webkit-overflow-scrolling: touch; /* Cuộn mượt trên iPhone */
+        }
+        /* Làm đẹp thanh cuộn ngang của size */
+        .tabs::-webkit-scrollbar { height: 4px; }
+        .tabs::-webkit-scrollbar-thumb { background: #ff6600; border-radius: 10px; }
+
         .tab-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px 15px; cursor: pointer; font-weight: bold; white-space: nowrap; border-radius: 4px; }
         .tab-btn.active { background: #ff6600; color: #000; border-color: #fff; }
         
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; }
         @media (min-width: 600px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); } }
         
-        .card { background: #111; border: 1px solid #333; padding: 8px; border-radius: 8px; transition: 0.3s; }
-        .card:hover { border-color: #ff6600; }
-        .card img { width: 100%; border-radius: 5px; aspect-ratio: 1/1; object-fit: cover; background: #222; display: block; }
+        .card { background: #111; border: 1px solid #333; padding: 8px; border-radius: 8px; }
+        .card img { 
+            width: 100%; border-radius: 5px; aspect-ratio: 1/1; 
+            object-fit: cover; background: #222; 
+            content-visibility: auto; /* Tăng tốc độ tải ảnh */
+        }
         .card p { margin: 10px 0 0; font-size: 13px; font-weight: bold; color: #ff6600; text-align: center; }
         
-        /* Modal chi tiết */
-        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; overflow-y: auto; }
-        .modal-content { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 60px 10px 20px; }
+        /* Modal xem ảnh chi tiết */
+        #modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; overflow-y: auto; }
+        .modal-content { display: flex; flex-direction: column; align-items: center; gap: 15px; padding: 70px 10px 20px; }
         .modal-content img { width: 100%; max-width: 500px; border: 1px solid #ff6600; border-radius: 5px; }
         .close-btn { position: fixed; top: 15px; right: 15px; font-size: 16px; color: #fff; cursor: pointer; background: #ff6600; padding: 10px 20px; border-radius: 5px; font-weight: bold; z-index: 1001; }
     </style>
@@ -32,7 +50,7 @@
 
     <h1>ĐÂY RỒI LÀ ĐÔI GIÀY</h1>
     <div class="tabs" id="tabs"></div>
-    <h2 id="size-title" style="font-size: 16px; margin: 20px 0; text-align: center;">CHỌN SIZE ĐỂ XEM HÀNG</h2>
+    <h2 id="size-title" style="font-size: 16px; margin: 20px 0; text-align: center;">CHỌN SIZE GIÀY</h2>
     <div class="grid" id="grid"></div>
 
     <div id="modal">
@@ -41,6 +59,7 @@
     </div>
 
     <script>
+        // Cấu hình số lượng giày của bạn
         const config = {
             "37": 10, "37.5": 0, "38": 10, "38.5": 0, "39": 0, "40": 0, 
             "40.5": 0, "41": 0, "42": 45, "42.5": 0, "43": 0, "44": 0, 
@@ -51,6 +70,7 @@
         const grid = document.getElementById('grid');
         const sizeTitle = document.getElementById('size-title');
 
+        // Tạo nút chọn size
         Object.keys(config).forEach(size => {
             const btn = document.createElement('button');
             btn.className = 'tab-btn';
@@ -63,35 +83,34 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             sizeTitle.innerText = `KHO GIÀY SIZE ${size}`;
-            grid.innerHTML = 'Đang tải ảnh...';
+            grid.innerHTML = '';
 
-            setTimeout(() => { // Tạo độ trễ nhỏ để tránh giật lag khi chuyển size
-                grid.innerHTML = '';
-                const count = config[size];
-                if (count === 0) {
-                    grid.innerHTML = '<p style="grid-column: 1/-1; color: #888;">Size này hiện đang hết hàng.</p>';
-                    return;
-                }
+            const count = config[size];
+            if (count === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1; color: #888; text-align:center;">Size này hiện đang hết hàng.</p>';
+                return;
+            }
 
-                for (let i = 1; i <= count; i++) {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    card.onclick = () => openModal(size, i);
-                    card.innerHTML = `
-                        <img src="img/size${size}/${i}/1.jpg" loading="lazy" alt="Giày" onerror="this.parentElement.style.display='none'">
-                        <p>Mẫu số ${i}</p>
-                    `;
-                    grid.appendChild(card);
-                }
-            }, 100);
+            for (let i = 1; i <= count; i++) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openModal(size, i);
+                // Dùng loading="lazy" để chống lag
+                card.innerHTML = `
+                    <img src="img/size${size}/${i}/1.jpg" loading="lazy" alt="Giày" onerror="this.src='https://via.placeholder.com/200?text=Loi+Anh'">
+                    <p>Mẫu số ${i}</p>
+                `;
+                grid.appendChild(card);
+            }
         }
 
         function openModal(size, id) {
             const modal = document.getElementById('modal');
             const container = document.getElementById('modal-images');
-            container.innerHTML = 'Đang tải ảnh chi tiết...';
+            container.innerHTML = '<p style="color:#fff">Đang tải ảnh chi tiết...</p>';
             modal.style.display = 'block';
-            
+            document.body.style.overflow = 'hidden'; // Khóa cuộn trang chủ khi xem ảnh
+
             setTimeout(() => {
                 container.innerHTML = '';
                 for (let j = 1; j <= 6; j++) {
@@ -101,12 +120,19 @@
                     img.onerror = function() { this.style.display='none'; }; 
                     container.appendChild(img);
                 }
-            }, 200);
+            }, 100);
         }
 
         function closeModal() {
             document.getElementById('modal').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Mở lại cuộn trang chủ
         }
+        
+        // Tự động chọn size 37 lúc mới vào
+        window.onload = () => {
+            const firstBtn = document.querySelector('.tab-btn');
+            if(firstBtn) firstBtn.click();
+        };
     </script>
 </body>
 </html>
