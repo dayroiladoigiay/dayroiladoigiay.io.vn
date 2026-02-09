@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ĐÂY RỒI LÀ ĐÔI GIÀY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root { --orange: #FF6600; --black: #121212; }
+        body { background: var(--black); color: #fff; font-family: sans-serif; margin: 0; text-align: center; }
+        header { background: #000; padding: 20px; border-bottom: 4px solid var(--orange); }
+        header h1 { color: var(--orange); font-family: 'Oswald'; margin: 0; font-size: 28px; }
+        .size-container { position: sticky; top: 0; background: #000; padding: 10px; overflow-x: auto; white-space: nowrap; z-index: 99; border-bottom: 1px solid #333; }
+        .btn-size { background: #333; color: #fff; border: none; padding: 12px 20px; margin: 5px; cursor: pointer; font-weight: bold; border-radius: 4px; font-family: 'Oswald'; }
+        .btn-size.active { background: var(--orange); color: #000; }
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 10px; max-width: 1200px; margin: auto; }
+        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+        .card { background: #1e1e1e; padding: 5px; border-radius: 5px; border: 1px solid #333; cursor: pointer; }
+        .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; border-radius: 3px; background: #fff; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: #000; overflow-y: auto; }
+        .modal-content { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 10px; margin-top: 50px; }
+        .modal-img { width: 100%; background: #fff; border-radius: 5px; }
+        .close { position: fixed; top: 10px; right: 20px; font-size: 30px; color: var(--orange); z-index: 1001; cursor: pointer; background: #000; padding: 5px 15px; border: 1px solid var(--orange); border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <header><h1>ĐÂY RỒI LÀ ĐÔI GIÀY</h1></header>
+    <div class="size-container" id="tabs"></div>
+    <h2 id="title" style="color: var(--orange); margin-top: 20px;">CHỌN SIZE GIÀY</h2>
+    <div class="product-grid" id="grid"></div>
+
+    <div id="modal" class="modal">
+        <span class="close" onclick="closeModal()">ĐÓNG [X]</span>
+        <div class="modal-content" id="modal-content"></div>
+    </div>
+
+    <script>
+        // CẤU HÌNH: Điền số đôi giày đang có vào đây
+        const config = {
+            "37": 0, "37.5": 0, "38": 10, "38.5": 0, "39": 0, "40": 0, 
+            "41": 0, "42": 45, "42.5": 0, "43": 0, "44": 0, "44.5": 0, 
+            "45": 0, "46": 0, "47": 0, "48": 0
+        };
+
+        const tabs = document.getElementById('tabs');
+        const grid = document.getElementById('grid');
+
+        Object.keys(config).forEach(size => {
+            let btn = document.createElement('button');
+            btn.className = 'btn-size';
+            btn.innerText = 'SIZE ' + size;
+            btn.onclick = () => loadSize(size, btn);
+            tabs.appendChild(btn);
+        });
+
+        function loadSize(size, btn) {
+            document.querySelectorAll('.btn-size').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('title').innerText = "KHO GIÀY SIZE " + size;
+            grid.innerHTML = '';
+            const count = config[size];
+            if(count === 0) {
+                grid.innerHTML = '<p style="grid-column: 1/-1">Hiện tại size này chưa có hàng.</p>';
+                return;
+            }
+            for(let i = 1; i <= count; i++) {
+                let card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `<img src="img/size${size}/${i}/1.jpg" loading="lazy" onerror="this.parentElement.style.display='none'">`;
+                card.onclick = () => openModal(size, i);
+                grid.appendChild(card);
+            }
+        }
+
+        function openModal(size, folderIndex) {
+            const content = document.getElementById('modal-content');
+            content.innerHTML = '';
+            for(let i = 1; i <= 6; i++) {
+                let img = document.createElement('img');
+                img.src = `img/size${size}/${folderIndex}/${i}.jpg`;
+                img.className = 'modal-img';
+                img.onerror = function() { this.style.display='none'; };
+                content.appendChild(img);
+            }
+            document.getElementById('modal').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+    </script>
+</body>
+</html>
